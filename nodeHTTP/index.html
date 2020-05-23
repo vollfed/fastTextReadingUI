@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+
+<head>
+	<title>Sensor Chart</title>
+	<script src="/chart.js/dist/Chart.js"></script>
+	<script src="/utils.js"></script>
+	<script src="/chart.js/dist/Chart.min.js"></script>
+	<script src="/axios/dist/axios.js"></script>
+	<link rel="stylesheet" type="text/css" href="/chart.js/dist/Chart.min.css">
+	<style>
+	canvas{
+		-moz-user-select: none;
+		-webkit-user-select: none;
+		-ms-user-select: none;
+	}
+	</style>
+</head>
+
+<body>
+	
+  <br>
+  <hr>
+  <br>
+  
+  <div width=400px style="padding-left:40px;display: inline-block;width:800px;background-color:green;">
+	<div style="float:left;width:100px;//background-color:blue">Q\min:</div>
+	<input id="1a" type="number" name="qinterval" >
+	<span id="1a_txt" style="padding-left:400px">0</span>
+  </div>
+  <br>
+  <div width=400px style="padding-left:40px;display: inline-block;width:800px;background-color:red;">
+	<div style="float:left;width:100px;//background-color:blue">Border:</div>
+	<input id="1b" type="number" name="border">
+	<span id="1b_txt" style="padding-left:400px;">0</span>
+  </div>
+  <br>
+  <div width=400px style="padding-left:40px;display: inline-block;width:800px;background-color:yellow;">
+	<div style="float:left;width:100px;//background-color:blue">Sample size:</div>
+	<input id="1c" type="number" name="sample" >
+	<span id="1c_txt" style="padding-left:400px;">0</span>
+  </div>
+  
+  <div style="padding-left:40px; padding-top:15px">
+  <button onclick="submit()">Submit</button> 
+  <button onclick="reset()">Reset</button> 
+  </div>
+
+	<script>
+		//var Chart = require('chart.js');	
+		
+		var setSpanText = function(inp1,inp2,inp3){
+		
+			document.getElementById("1a_txt").textContent = "test1";
+			document.getElementById("1b_txt").textContent = "test2";
+			document.getElementById("1c_txt").textContent = "test3";
+			
+			document.getElementById("1a").value = inp1;
+			document.getElementById("1b").value = inp2;
+			document.getElementById("1c").value = inp3;
+			
+		};
+		
+		
+		// var arrLen = 180;
+		// var borderValue = 500;
+	 	//  var dataBorderArr = Array(arrLen).fill(borderValue);
+		// var scensorArr = Array(arrLen).fill(500);
+		// var labelArr = Array.from(Array(arrLen).keys())
+		
+		// var valueCountArr = [0];
+		// var refreshInterval = 0.05;
+		
+		window.onload = function() {
+			
+		};
+		
+		var goo = function (sensorData) {
+			setTimeout(getSensorData, refreshInterval * 1000);
+		};
+
+		setTimeout(function(){getSensorData()}, refreshInterval * 1000);
+
+	</script>
+</body>
+
+</html>
