@@ -2,7 +2,7 @@
 <html>
 
 <head>
-	<title>Sensor Chart</title>
+	<title>Fast reading</title>
 	<script src="/chart.js/dist/Chart.js"></script>
 	<script src="/utils.js"></script>
 	<script src="/chart.js/dist/Chart.min.js"></script>
@@ -17,49 +17,201 @@
 	</style>
 </head>
 
+<style type="text/css">
+   .block1 { 
+   	width: 1400px; 
+    background: #ccc;
+    padding: 5px;
+    padding-right: 20px; 
+    border: solid 1px black; 
+    float: left;  
+    font-size: 18pt;
+   }
+   .block2 { 
+   	font-size: 45pt;
+   	text-align: center;
+   }
+   .block3 { 
+   	float: none; 
+   }
+   .block4 { 
+   	text-align: center; 
+   	font-size: 12pt;
+   }
+  </style> 
+
 <body>
 	
   <br>
-  <hr>
-  <br>
-  
-  <div width=400px style="padding-left:40px;display: inline-block;width:800px;background-color:green;">
-	<div style="float:left;width:100px;//background-color:blue">Q\min:</div>
-	<input id="1a" type="number" name="qinterval" >
-	<span id="1a_txt" style="padding-left:400px">0</span>
-  </div>
-  <br>
-  <div width=400px style="padding-left:40px;display: inline-block;width:800px;background-color:red;">
-	<div style="float:left;width:100px;//background-color:blue">Border:</div>
-	<input id="1b" type="number" name="border">
-	<span id="1b_txt" style="padding-left:400px;">0</span>
-  </div>
-  <br>
-  <div width=400px style="padding-left:40px;display: inline-block;width:800px;background-color:yellow;">
-	<div style="float:left;width:100px;//background-color:blue">Sample size:</div>
-	<input id="1c" type="number" name="sample" >
-	<span id="1c_txt" style="padding-left:400px;">0</span>
-  </div>
-  
-  <div style="padding-left:40px; padding-top:15px">
-  <button onclick="submit()">Submit</button> 
-  <button onclick="reset()">Reset</button> 
-  </div>
+  <div>
+	  <div style="background-color:yellow; float:left;">
+	    <textarea id="story" name="story" style="font-size: 16pt;" onchange="initTextArray()"
+		          rows="50" cols="50">
+				  ...
+	    </textarea>
+	  </div>
+	  <div class="block1">
+		  	<div style="padding-left:40px; padding-top:15px">
+		  		<div class="block4">▼</div>
+			  	<textarea id="fastText" name="fastText" class="block2"
+				          rows="1" cols="35">
+						  ...
+			    </textarea>
+			    <div class="block4">▲</div>
+		    </div>
+		    <br>
+		    <div style="padding-left:40px; padding-top:15px;">
+			  <button class="block2" onclick="slow()">⏪️</button> 
+			  <button class="block2" onclick="start()">▶️</button> 
+			  <button class="block2" onclick="stop()">⏸️</button> 
+			  <button class="block2" onclick="reset()">⏹️</button> 
+			  <button class="block2" onclick="fast()">⏩️</button> 
+		    </div>
+		    <hr>
+		    <br>
+		    <div class="block3" style="padding-left:40px; padding-top:15px">
+			  <span style="float:left; font-size: 24pt;">Кол-во слов в минуту: </span>
+			  <span style="float:left; font-size: 24pt;" id="wordPerMin">0</span>
+	  		</div>
+	  		<br>
+			<br>		
+	  </div>  
+  </div>  
 
-	<script>
+  <script>
 		//var Chart = require('chart.js');	
+
+		var textBulk = "";
 		
-		var setSpanText = function(inp1,inp2,inp3){
-		
-			document.getElementById("1a_txt").textContent = "test1";
-			document.getElementById("1b_txt").textContent = "test2";
-			document.getElementById("1c_txt").textContent = "test3";
-			
-			document.getElementById("1a").value = inp1;
-			document.getElementById("1b").value = inp2;
-			document.getElementById("1c").value = inp3;
+		var wordArr = textBulk.split(" ");
+
+		var wordInd = 0;
+
+		var defaultSpeed = 250;
+		var wordSpeed = defaultSpeed;
+		var wordSpeedStep = 50;
+		var stopFlag = false;
+
+		var curPosStart = 0;
+		var curPosEnd = 0;
+
+		var start = async function(){
+			//debugger;
+			stopFlag = false;
+
+			var storyText = document.getElementById("story");
+ 			var fastText = document.getElementById("fastText");
+
+			for(i = wordInd; i < wordArr.length; i++){
+
+				var curWordStr = wordArr[wordInd];
+				
+				var bottomEndStr = 0;
+				var topEndStr = 0;
+
+				if(!!wordArr[wordInd-1]){
+					curWordStr = wordArr[wordInd-1] + " " + curWordStr;
+					bottomEndStr = bottomEndStr + wordArr[wordInd-1].length+1;
+				}
+
+				if(!!wordArr[wordInd-2]){
+					curWordStr = wordArr[wordInd-2] + " " + curWordStr;
+					bottomEndStr = bottomEndStr + wordArr[wordInd-2].length+1;
+				}
+
+				if(!!wordArr[wordInd+1]){
+					curWordStr = curWordStr + " " + wordArr[wordInd+1];
+					topEndStr = topEndStr + wordArr[wordInd+1].length+1;
+				}
+
+				if(!!wordArr[wordInd+2]){
+					curWordStr = curWordStr + " " + wordArr[wordInd+2];
+					topEndStr = topEndStr + wordArr[wordInd+2].length+1;
+				}
+
+				var shift = 0;
+				if(bottomEndStr !== 0 && topEndStr !== 0 ){
+					shift = (bottomEndStr + topEndStr)/2;
+				}
+				
+				var shiftSymbCnt = 10;
+				var fromPoint = (bottomEndStr > shiftSymbCnt ) ? shiftSymbCnt : 0;
+				var toPoint = (topEndStr > shiftSymbCnt ) ? shiftSymbCnt : 0;
+
+				//fastText.innerHTML = curWordStr.substring(bottomEndStr-shiftSymbCnt,bottomEndStr + curWordStr.length + topEndStr - shiftSymbCnt);
+				fastText.innerHTML = wordArr[wordInd];
+				// storyText.selectionStart = curPosStart;
+				// curPosEnd = curPosStart + curWordStr.length;
+				// storyText.selectionEnd = curPosEnd;
+				// curPosStart = curPosStart + curWordStr.length+1;
+
+				storyText.selectionStart = curPosStart;
+				curPosEnd = curPosStart + wordArr[wordInd].length;
+				storyText.selectionEnd = curPosEnd;
+				curPosStart = curPosStart + wordArr[wordInd].length+1;
+				
+				await sleep(wordSpeed);
+				wordInd++;
+				
+				if(stopFlag)
+					break;
+			}
 			
 		};
+
+		var stop = function(){
+			stopFlag = true;
+			wordSpeed = defaultSpeed;
+		};
+
+		var slow = function(){
+			wordSpeed = wordSpeed + wordSpeedStep;
+			
+			//If speed < 120 then reset to 120
+			if(wordSpeed > defaultSpeed)
+				wordSpeed = defaultSpeed;
+
+			var wordSpeedElem = document.getElementById("wordPerMin");
+			var newSpeed = 1000 / wordSpeed * 60;
+
+
+			wordSpeedElem.innerHTML = Math.round(newSpeed);
+		};
+
+		var fast = function(){
+			wordSpeed = wordSpeed - wordSpeedStep;
+			var wordSpeedElem = document.getElementById("wordPerMin");
+			var newSpeed = 1000 / wordSpeed * 60;
+
+			wordSpeedElem.innerHTML = Math.round(newSpeed);
+		};
+
+		var reset = function(){
+			stopFlag = true;
+			wordInd = 0;
+			curPosStart = 0;
+			curPosEnd = 0
+			var fastText = document.getElementById("fastText");
+			fastText.innerHTML = wordArr[wordInd];
+		};
+
+		var initTextArray = function(param){		
+			//debugger;
+			var storyText = document.getElementById("story");
+			var fastText = document.getElementById("fastText");
+			
+			wordArr = storyText.value.split(" ");
+			wordInd = 0;
+			curPosStart = 0;
+			curPosEnd = 0
+			stopFlag = true;
+
+			fastText.innerHTML = wordArr[wordInd];
+		};
+
+		var sleep = function (ms) {
+  			return new Promise(resolve => setTimeout(resolve, ms));
+		};	
 		
 		
 		// var arrLen = 180;
@@ -72,14 +224,23 @@
 		// var refreshInterval = 0.05;
 		
 		window.onload = function() {
-			
+			 var fullText = document.getElementById("story");
+			 var fastText = document.getElementById("fastText");
+			 var wordSpeedElem = document.getElementById("wordPerMin");
+			 
+			 fullText.innerHTML = textBulk;
+			 wordInd = 0;
+			 fastText.innerHTML = wordArr[wordInd];
+
+			 var newSpeed = 1000 / wordSpeed * 60;
+			 wordSpeedElem.innerHTML = Math.round(newSpeed);
+
 		};
 		
 		var goo = function (sensorData) {
 			setTimeout(getSensorData, refreshInterval * 1000);
 		};
 
-		setTimeout(function(){getSensorData()}, refreshInterval * 1000);
 
 	</script>
 </body>
